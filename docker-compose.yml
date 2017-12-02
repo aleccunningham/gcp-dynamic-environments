@@ -1,0 +1,82 @@
+version: '2'
+# Variables:
+# $COMPOSE_PROJECT_NAME = Service suite
+# $PROJECT_ID = GCP project_id
+# $IMAGE_APP_* = Service-specific image
+services:
+  app-1:
+    image: gcr.io/$PROJECT_ID/$IMAGE_APP_1
+    command: /home/docker/bin/start.sh
+    ports:
+      - "8002:8002"
+    networks:
+      - $COMPOSE_PROJECT
+    hostname: app-1
+    volumes:
+      - ./etc/uwsgi/:/etc/uwsgi/sites/
+      - ./etc/$COMPOSE_PROJECT_NAME:/etc/$COMPOSE_PROJECT_NAME
+    environment:
+      - UWSGI_INI_FILE=/etc/uwsgi/sites/app-1.ini
+      - UWSGI_LOG_FILE=/var/log/uwsgi/uwsgi-app-1.log
+  app-2:
+    image: gcr.io/$PROJECT_ID/$IMAGE_APP_2
+    command: /home/docker/bin/start.sh
+    ports:
+      - "8004:8004"
+    networks:
+      - analyte
+    hostname: app-2
+    volumes:
+      - ./etc/$COMPOSE_PROJECT_NAME:/etc/$COMPOSE_PROJECT_NAME
+      - ./etc/uwsgi/:/etc/uwsgi/sites/
+    environment:
+      - UWSGI_INI_FILE=/etc/uwsgi/sites/app-2.ini
+      - UWSGI_LOG_FILE=/var/log/uwsgi/uwsgi-app-2.log
+  app-3:
+    image: gcr.io/$PROJECT_ID/$IMAGE_APP_3
+    command: /home/docker/bin/start.sh
+    ports:
+      - "8007:8007"
+    networks:
+      - $COMPOSE_PROJECT
+    hostname: app-3
+    volumes:
+      - ./etc/$COMPOSE_PROJECT_NAME:/etc/$COMPOSE_PROJECT_NAME
+      - ./etc/uwsgi/:/etc/uwsgi/sites/
+    environment:
+      - UWSGI_INI_FILE=/etc/uwsgi/sites/app-3.ini
+      - UWSGI_LOG_FILE=/var/log/uwsgi/uwsgi-app-3.log
+  celery:
+    image: gcr.io/$PROJECT_ID/$IMAGE
+    command: /home/docker/bin/start_celery.sh
+    networks:
+      - $COMPOSE_PROJECT
+    hostname: celery
+    volumes:
+      - ./etc/$COMPOSE_PROJECT_NAME:/etc/$COMPOSE_PROJECT_NAME
+    working_dir: /home/docker/app/src/celery
+  mysql:
+    image: mysql/mysql-server:5.5
+    hostname: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./etc/mysql:/etc/mysql/
+      - ./db-init.sh:/docker-entrypoint-initdb.d/db-init.sh
+      - db-data:/var/lib/mysql/
+    networks:
+      $COMPOSE_PROJECT:
+        aliases:
+          - $DB_NAME
+
+# AKA docker network create --driver bridge $COMPOSE_PROJECT
+networks:
+  $COMPOSE_PROJECT:
+    external: true
+
+# AKA docker volume create --name db-data
+volumes:
+  db-data:
+    external: true

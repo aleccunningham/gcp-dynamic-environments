@@ -1,0 +1,40 @@
+# Assumes:
+# - gs://test-results
+# - gs://prod-static
+# - gs://$BRANCH_SLUG-static
+# - Located at base dir of project
+steps:
+# Uses the ubuntu image as a builder to run a shell script
+- name: 'ubuntu'
+  args: ['/bin/bash', 'scripts/prepare.sh']
+# Uses the docker builder to build an image
+- name: 'grc.io/cloud-builders/docker'
+  args: ['build', '-t', 'grc.io/$PROJECT_ID/$IMAGE', '.']
+# Builds test image to use as custom builder
+- name: 'grc.io/cloud-builders/docker'
+  args: ['build', '-t', 'grc.io/$PROJECT_ID/$IMAGE', '.']
+# Run tests via analyte_unittest image
+- name: 'grc.io/$PROJECT_ID/$IMAGE_test'
+  args: ['./manage.py', 'test', '--noinput']
+# gsutil copies test results to bucket to allow Jenkins/user access
+- name: 'grc.io/cloud-builders/gsutil'
+  args: ['cp', '-r', '/workspace/unittests', 'gs://test-results/$SHORT_SHA/']
+# Collect static and upload that to a storage bucket as well
+- name: 'grc.io/cloud-builders/$IMAGE_test'
+  args: ['./manage.py', 'collectstatic', '--noinput']
+- name: 'grc.io/cloud-builders/gsutil'
+  args: ['cp', '-r', '/workspace/static', 'gs://$BRANCH_SLUG-static/$SHORT_SHA/']
+# Set the new image on deployment $APP (stx, amp, nine, etc)
+- name: 'grc.io/cloud-builders/kubectl'
+  args: ['set', 'image', 'deployment', '$APP', '$APP=$REPO:$SHORT_SHA']
+  env:
+  - 'SHORT_SHA=$SHORT_SHA'
+  - 'REPO=us.grc.io/$PROJECT_ID/$IMAGE'
+  #waitFor:
+  #-
+images:
+- 'grc.io/$PROJECT_ID/$IMAGE'
+- 'grc.io/$PROJECT_ID/$IMAGE_test'
+tags:
+- "latest"
+- "$SHORT_SHA"
