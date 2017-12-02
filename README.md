@@ -76,3 +76,13 @@ The real magic happens in the Vagrantfile. Running `vagrant up` and you'll be pr
 The only caveat when using the Vagrantfile is in regards to SSH keys; you will have to specify the path to the keys that Google provided under `~/.ssh/google_compute_engine` (or something similar). You can easily do this via the variable definitions at the top of the file, and if your VM was created via Jenkins it should already be taken care of.
 
 Custom user SSH keys might take some modifying; it is recommended to use `google_compute_engine.pub` as it still identifies the user and is formatted to work with compute instances.
+
+## Hashicorp integrations
+
+### Terraform
+
+### Packer
+
+### Ansible
+
+### Vault

@@ -1,0 +1,16 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build and test on GCP') {
+            steps {
+                sh 'make submit'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                deployBranch
+            }
+        }
+    }
+}
