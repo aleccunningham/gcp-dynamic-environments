@@ -5,12 +5,20 @@ pipeline {
         stage('Build and test on GCP') {
             steps {
                 sh 'make submit'
+                gsutil cp -r */static/* gs://static-$RANDOM/
             }
         }
         stage('Deploy') {
             steps {
-                deployEnvironment
+                deployEnvironment env: "Branch"
+                    argumentTwo: "Something else"
             }
         }
-    }
+        stage('Shutdown') {
+            steps {
+                freeResources branch: 'Dev'
+                    argumentTwo: "Something"
+            }
+        }
+     }
 }
