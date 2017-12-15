@@ -13,7 +13,7 @@ Huzzah!
 
 Notes:
 
-- This repository assumes you already have a copy of the `$IMAGE:latest`, tagged for GCP (which looks like this `us.gcr.io/$PROJECT_ID/$IMAGE:$IMAGE_TAG`), image on your machine. Clone the analyte repository and build `analyte` and `analyte_base` if you have not already.
+- This repository assumes you already have a copy of the `$IMAGE:latest`, tagged for GCP (which looks like this `us.gcr.io/$PROJECT_ID/$IMAGE:$IMAGE_TAG`), image on your machine. Clone the images repository and build `image` and `image_base` if you have not already.
 - This makes use of two service accounts -- one for VM creation, and another that is used on the VM itself that has registry permissions to access images on GCP. It is not enabled by default, but can be set on the VM via:
 
 ```Bash
